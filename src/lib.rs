@@ -5,7 +5,7 @@ struct Person {
     serial_number: i32,
 }
 
-fn lookup_name_by_serial(serial: i32, conn: &Connection) -> Result<Option<String>> {
+pub fn lookup_name_by_serial(serial: i32, conn: &Connection) -> Result<Option<String>> {
     let mut stmt = conn.prepare("SELECT name FROM people WHERE serial_number = ?")?;
     let mut rows = stmt.query([serial])?;
 
