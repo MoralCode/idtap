@@ -1,9 +1,17 @@
+use std::env;
 use std::io::Write;
 use std::time::Duration;
 
 fn main() {
-    // Replace "COM1" with the actual serial port name on your system.
-    let port_name = "COM1";
+	// Read the serial port name from the command line arguments.
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 2 {
+        eprintln!("Usage: {} <serial_port>", args[0]);
+        return;
+    }
+
+    let port_name = &args[1];
+	// let port_name = "/dev/pts/24";
     let port = serialport::new(port_name, 9600)
         .data_bits(serialport::DataBits::Eight)
         .flow_control(serialport::FlowControl::None)
