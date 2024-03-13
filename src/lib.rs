@@ -5,7 +5,40 @@ struct Person {
     serial_number: i32,
 }
 
+fn initialize_database(conn: &Connection) -> Result<()> {
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS people (
+                serial_number INTEGER PRIMARY KEY
+                name TEXT NOT NULL,
+            )",
+        [],
+    )?;
+
+    Ok(())
+}
+
+fn check_database_initialized(conn: &Connection) -> Result<bool> {
+    return table_exists(conn, "people");
+}
+
+fn table_exists(conn: &Connection, table_name: &str) -> Result<bool> {
+    let query = format!(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='{}'",
+        table_name
+    );
+    let mut stmt = conn.prepare(&query)?;
+    let rows = stmt.query_map([], |_| Ok(()))?;
+
+    let exists = rows.count()? > 0;
+    Ok(exists)
+}
+
+
 pub fn lookup_name_by_serial(serial: i32, conn: &Connection) -> Result<Option<String>> {
+    if !check_database_initialized(conn) {
+        initialize_database(conn);
+    }
+
     let mut stmt = conn.prepare("SELECT name FROM people WHERE serial_number = ?")?;
     let mut rows = stmt.query([serial])?;
 
@@ -20,6 +53,9 @@ pub fn lookup_name_by_serial(serial: i32, conn: &Connection) -> Result<Option<St
 fn main() -> Result<()> {
     // Replace "your_database.sqlite" with the actual path to your SQLite database file.
     let conn = Connection::open("your_database.sqlite")?;
+
+    // Initialize the database if it doesn't exist
+    initialize_database(&conn)?;
 
     // Replace "123456" with the actual serial number you want to look up.
     let serial_to_lookup = 123456;
