@@ -35,8 +35,13 @@ fn table_exists(conn: &Connection, table_name: &str) -> Result<bool> {
 
 
 pub fn lookup_name_by_serial(serial: i32, conn: &Connection) -> Result<Option<String>> {
-    if !check_database_initialized(conn) {
-        initialize_database(conn);
+    match check_database_initialized(conn) {
+        Ok(result) => {
+            if (!result) {
+                initialize_database(conn);
+            }
+        }
+        Err(e) => eprintln!("Error checking DB initialization: {}", e),
     }
 
     let mut stmt = conn.prepare("SELECT name FROM people WHERE serial_number = ?")?;
